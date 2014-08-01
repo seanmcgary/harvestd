@@ -1,0 +1,5 @@
+## Components
+
+- harvest daemon (harvestd)
+- harvest client
+- harvest front-end/visualizer

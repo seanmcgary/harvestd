@@ -16,7 +16,6 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var middlewares = config.requireLib('/modules/middlewares');
 
-
 var server = express();
 server.use(bodyParser.json());
 server.use(cookieParser());

@@ -7,7 +7,8 @@ var requireConfig = function(conf){
 };
 
 var config = {
-	server: requireConfig('server')
+	server: requireConfig('server'),
+	elasticsearch: requireConfig('elasticsearch')
 };
 
 module.exports = config;

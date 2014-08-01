@@ -3,7 +3,9 @@ var _ = require('lodash');
 var base = {
 	host: 'elasticsearch.local',
 	port: 9200,
-	apiVersion: '1.1'
+	apiVersion: '1.1',
+	index: 'analytics',
+	type: 'event'
 };
 
 exports.base = _.cloneDeep(base);

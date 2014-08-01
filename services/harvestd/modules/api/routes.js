@@ -80,14 +80,14 @@ module.exports = function(server, config, Store){
 			errorData.token = 'Please provide your API token';
 		}
 
-		if(!data.fromId || !data.fromId.length){
+		if(!data.uuid || !data.uuid.length){
 			errors = true;
-			errorData.fromId = 'Please provide a fromId';
+			errorData.uuid = 'Please provide a uuid';
 		}
 
-		if(!data.toId || !data.toId.length){
+		if(!data.userId || !data.userId.length){
 			errors = true;
-			errorData.toId = 'Please provide a toId';
+			errorData.userId = 'Please provide a userId';
 		}
 
 		if(errors){
@@ -102,12 +102,12 @@ module.exports = function(server, config, Store){
 
 		{
 			token: <your account token>,			// your account token
-			fromId: ''								// their previous ID
-			toId: ''								// the ID that should overwrite that previous ID
+			uuid: ''								// their previous ID
+			userId: ''								// the ID that should overwrite that previous ID
 		}	
 	*/
 	server.post('/identify', validateIdentifyFields, function(req, res){
-		Store.identify(req.body.token, req.body.fromId, req.body.toId)
+		Store.identify(req.body.token, req.body.uuid, req.body.userId)
 		.then(function(result){
 			res.json(result);
 		}, res.handleError);

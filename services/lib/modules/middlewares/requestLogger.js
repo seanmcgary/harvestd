@@ -17,16 +17,24 @@ var requestLogger = function(options){
 			var statusCode = res.statusCode;
 			var isError = _.indexOf([4,5], ~~(res.statusCode / 100)) >= 0;
 
-			logger.log({
+			var hasError = !!res.responseError;
+			var logData = {
 				level: (isError ? logger.levels.ERROR : logger.levels.INFO),
 				message: [req.method, req.path].join(' '),
 				data: {
 					responseTime: delta,
 					method: req.method,
-					statusCode: statusCode,
-					error: res.responseError || {}
+					statusCode: statusCode
 				}
-			});
+			};
+
+			if(hasError){
+				logData.data = _.extend(logData.data, {
+					error: res.responseError.error || {},
+					errorData: res.responseError.data || {}
+				});
+			}
+			logger.log(logData);
 
 			oldEnd.apply(res, _.values(arguments));
 		};

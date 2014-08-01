@@ -105,6 +105,11 @@ module.exports = {
 							"type": "string",
 							"store": true
 						},
+						"source": {
+							"index": "not_analyzed",
+							"type": "string",
+							"store": true
+						},
 						"testGroups": {
 							"properties": {
 								"name": {
@@ -113,6 +118,31 @@ module.exports = {
 									"store": true
 								},
 								"value": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								}
+							}
+						},
+						"device": {
+							"type": "object",
+							"properties": {
+								"os": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"osVersion": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"device": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"browser": {
 									"index": "not_analyzed",
 									"type": "string",
 									"store": true

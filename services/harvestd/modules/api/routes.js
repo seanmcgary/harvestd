@@ -63,17 +63,42 @@ module.exports = function(server, config, Store){
 	*/
 	server.post('/track', validateTrackFields, function(req, res){
 
-
 		Store.track(req.body.token, req.body.event, req.body.data)
 		.then(function(result){
 			res.json(result);
-		}, function(err){
-			res.handleError(err);
-		});
+		}, res.handleError);
 	});
 
+	var validateIdentifyFields = function(req, res, next){
+		var errors = false;
+		var errorData = {};
+
+		var data = req.body || {};
+
+		if(!data.token || !data.token.length){
+			errors = true;
+			errorData.token = 'Please provide your API token';
+		}
+
+		if(!data.fromId || !data.fromId.length){
+			errors = true;
+			errorData.fromId = 'Please provide a fromId';
+		}
+
+		if(!data.toId || !data.toId.length){
+			errors = true;
+			errorData.toId = 'Please provide a toId';
+		}
+
+		if(errors){
+			return res.handleError(new ApiError(errorTypes.MISSING_FIELDS, errorData));
+		}
+
+		next();
+	};
+
 	/**
-		POST /track
+		POST /identify
 
 		{
 			token: <your account token>,			// your account token
@@ -81,11 +106,11 @@ module.exports = function(server, config, Store){
 			toId: ''								// the ID that should overwrite that previous ID
 		}	
 	*/
-
-	server.post('/identify', function(req, res){
-		console.log('identify');
-
-		res.send(200);
+	server.post('/identify', validateIdentifyFields, function(req, res){
+		Store.identify(req.body.token, req.body.fromId, req.body.toId)
+		.then(function(result){
+			res.json(result);
+		}, res.handleError);
 	});
 
 };

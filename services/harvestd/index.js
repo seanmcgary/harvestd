@@ -5,6 +5,7 @@ var _ = require('lodash');
 var q = require('q');
 
 var config = require('../config');
+var elasticsearchStore = require('./modules/api/elasticsearchStore');
 
 var logwrangler = require('logwrangler');
 var logger = logwrangler.create();
@@ -19,6 +20,25 @@ var middlewares = config.requireLib('/modules/middlewares');
 var server = express();
 server.use(bodyParser.json());
 server.use(cookieParser());
+server.use(middlewares.requestLogger({
+	logger: logger
+}));
+
+server.use(function(req, res, next){
+
+	res.handleError = function(error, data){
+		res.responseError = {
+			error: error,
+			data: data
+		};
+
+		res.json((error && error.type && error.type.statusCode || 500), {
+			error: error,
+			data: data
+		});
+	};
+	next();
+});
 
 var startServer = function(){
 	server.listen(config.server.port);
@@ -29,6 +49,11 @@ var startServer = function(){
 		message: 'Server started on port ' + config.server.port
 	});
 };
+
+var Store = new elasticsearchStore.create(config.elasticsearch);
+
+
+require('./modules/api/routes')(server, config, Store);
 
 startServer();
 

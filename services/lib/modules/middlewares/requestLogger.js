@@ -23,7 +23,8 @@ var requestLogger = function(options){
 				data: {
 					responseTime: delta,
 					method: req.method,
-					statusCode: statusCode
+					statusCode: statusCode,
+					error: res.responseError || {}
 				}
 			});
 

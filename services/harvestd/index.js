@@ -1,8 +1,6 @@
 /*
 	harvestd daemon entry point
 */
-
-// third party libs
 var _ = require('lodash');
 var q = require('q');
 
@@ -22,8 +20,6 @@ var server = express();
 server.use(bodyParser.json());
 server.use(cookieParser());
 
-
-
 var startServer = function(){
 	server.listen(config.server.port);
 	logger.log({
@@ -33,11 +29,6 @@ var startServer = function(){
 		message: 'Server started on port ' + config.server.port
 	});
 };
-
-
-server.get('/', middlewares.requestLogger(), function(req, res){
-
-});
 
 startServer();
 

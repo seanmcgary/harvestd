@@ -33,6 +33,13 @@ server.start();
 
 ## Creating a custom store
 
+By default, Harvestd comes with and Elasticsearch adapter and will use it as its default data store. 
+Depending on your usecase however, you may want to use some other datastore, multiple datastores, or 
+event format your data in an entirely different way. To do that, all you need to do is implement the 
+Harvestd.Store prototype for ```track``` and ```identify``` and pass an instance of it when creating 
+your Harvestd server instance.
+
+
 ```javascript
 var Q = require('q');
 var Harvestd = require('harvestd');

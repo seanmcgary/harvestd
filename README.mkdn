@@ -44,7 +44,10 @@ function MyStore(){
 MyStore.prototype = Object.create(Harvestd.Store.prototype);
 
 /**
-	@string token		Identification token
+	@string token		Account identification token (if not running multi-tenant, 
+						this can be any string value with a length >= 1). Otherwise
+						You should use this value to identify each user/account.
+		
 	@string event 		The event name
 	@object data		Object literal representing the data that needs to be inserted
 */
@@ -57,7 +60,10 @@ MyStore.prototype.track = function(token, event, data){
 
 
 /**
-	@string token		Identification token
+	@string token		Account identification token (if not running multi-tenant, 
+						this can be any string value with a length >= 1). Otherwise
+						You should use this value to identify each user/account.
+
 	@string uuid 		The uuid to use to find events to set the userId on
 	@string userId		The userId to set
 */

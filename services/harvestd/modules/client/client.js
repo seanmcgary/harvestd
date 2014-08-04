@@ -88,10 +88,6 @@
 	// pretrack is a function that will get called before each track.
 	// gives you the opportunity to set things on each event
 
-	var preTrack = function(event, data, cb){ 
-		cb(event, data); 
-	};
-
 	var sendTrack = function(data){
 		return jQuery.ajax({
 			url: '//localhost:9000/track',
@@ -101,11 +97,27 @@
 		});
 	};
 
+	var sendIdentify = function(data){
+		return jQuery.ajax({
+			url: '//localhost:9000/identify',
+			type: 'post',
+			dataType: 'json',
+			data: data
+		});
+	};
+
+	var preTrack = function(event, data, cb){ 
+		cb(event, data); 
+	};
+
 	function Harvest(token){
 		this.token = token;
+		this._alwaysInclude = {};
 
 		getCookie();
 	};
+
+
 
 	Harvest.prototype.preTrack = function(handler){
 		if(typeof handler === 'function'){
@@ -122,7 +134,16 @@
 			return cb(true, { event: 'event name is required' });
 		}
 
-		preTrack(event, data, function(event, data){
+		var compiledData = {};
+		for(var k in self._alwaysInclude){
+			compiledData[k] = self._alwaysInclude[k];
+		}
+
+		for(var k in data){
+			compiledData[k] = data[k];
+		}
+
+		preTrack(event, compiledData, function(event, data){
 			var cookie = getCookie();
 			data.$uuid = cookie.$uuid;
 			data = {
@@ -136,8 +157,21 @@
 		});
 	};
 
-	Harvest.prototype.identify = function(){
+	Harvest.prototype.identify = function(replaceId){
+		var self = this;
+		var cookie = getCookie();
 
+		sendIdentify({
+			token: this.token,
+			uuid: cookie.$uuid,
+			userId: replaceId
+		});
+	};
+
+	Harvest.prototype.alwaysInclude = function(data){
+		if(data && typeof data === 'object'){
+			this._alwaysInclude = data;
+		}
 	};
 
 	window.Harvest = Harvest;

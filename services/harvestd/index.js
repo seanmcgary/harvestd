@@ -30,7 +30,9 @@ exports.create = function(options){
 
 
 	var server = express();
-	server.use(bodyParser.json());
+	server.use(bodyParser());
+	//server.use(bodyParser.json());
+	//server.use(bodyParser.urlencoded({ extended: false }));
 	server.use(cookieParser());
 
 	server.use(expressWrangler({
@@ -65,6 +67,7 @@ exports.create = function(options){
 
 
 	require('./modules/api/routes')(server, config, Store);
+	require('./modules/client/routes')(server, config, Store);
 
 	return {
 		server: server,

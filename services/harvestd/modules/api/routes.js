@@ -10,6 +10,7 @@ module.exports = function(server, config, Store){
 	var validateTrackFields = function(req, res, next){
 		var errors = false;
 		var errorData = {};
+		console.log(req.body);
 
 		var data = req.body || {};
 
@@ -62,7 +63,6 @@ module.exports = function(server, config, Store){
 		}	
 	*/
 	server.post('/track', validateTrackFields, function(req, res){
-
 		Store.track(req.body.token, req.body.event, req.body.data)
 		.then(function(result){
 			res.json(result);

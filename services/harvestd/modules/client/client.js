@@ -81,13 +81,13 @@
 
 		cookie.lastSeen = Date.now();
 		
-		jQuery.cookies.set(COOKIE_NAME, cookie, { expire: 365 });
+		// NOTE - this is a session cookie
+		jQuery.cookies.set(COOKIE_NAME, cookie);
 	};
 
 
 	// pretrack is a function that will get called before each track.
 	// gives you the opportunity to set things on each event
-
 	var sendTrack = function(data){
 		return jQuery.ajax({
 			url: '//localhost:9000/track',
@@ -116,8 +116,6 @@
 
 		getCookie();
 	};
-
-
 
 	Harvest.prototype.preTrack = function(handler){
 		if(typeof handler === 'function'){

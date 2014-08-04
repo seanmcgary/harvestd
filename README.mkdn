@@ -112,4 +112,46 @@ The main purpose is to ensure that values are the correct types. For example:
 	*/
 ```
 
+## API Routes
+
+### track
+
+Track an event with any arbitrary amount of data. See [services/harvestd/modules/api/elasticsearchStore/mappings](services/harvestd/modules/api/elasticsearchStore/mappings.js) for an example of available fields (if using the ESStore handler).
+
+```
+POST /track
+Content-Type: application/json
+
+{
+	"token": "your account token",
+	"event": "an event name",
+	"data": {
+		"$uuid": "client uuid"
+	}
+}
+```
+
+
+### identify
+
+Identify is used to associate tracked events with a particular UUID with some kind of userId from
+your own backend. This can be any string value you want - an integer user id, a user's email, etc, as
+long as its unique within your system. By default when you track an event, the $uuid will be used as the $userId
+if the $userId is not provided.
+
+Calling ```identify()``` will also store the provided userId for the session so subsequent ```track()``` calls 
+are identified.
+
+```identify()``` should be called whenever a user can be identified; this could be after signup, login, or at any other point that a user's identity is determined in your app.
+
+```
+POST /track
+Content-Type: application/json
+
+{
+	"token": "your account token",
+	"uuid": "client uuid"
+	"userId": "ID of identified user"
+}
+```
 

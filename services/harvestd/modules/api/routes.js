@@ -10,7 +10,6 @@ module.exports = function(server, config, Store){
 	var validateTrackFields = function(req, res, next){
 		var errors = false;
 		var errorData = {};
-		console.log(req.body);
 
 		var data = req.body || {};
 

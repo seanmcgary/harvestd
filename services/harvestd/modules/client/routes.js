@@ -12,7 +12,6 @@ module.exports = function(server, config, Store){
 	var jsClient = fs.readFileSync(__dirname + '/client.js').toString();
 
 	server.get('/js/client.js', function(req, res){
-		console.log(jsClient);
 
 		res.set('Content-Type', 'text/javascript');
 		res.send(jsClient);
@@ -20,7 +19,6 @@ module.exports = function(server, config, Store){
 
 	server.get('/testClient', function(req, res){
 		var template = _.template(testClient);
-		console.log(template());
 		res.send(template());
 	});
 

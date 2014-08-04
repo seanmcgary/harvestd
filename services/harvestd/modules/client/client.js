@@ -164,6 +164,12 @@
 			uuid: cookie.$uuid,
 			userId: replaceId
 		});
+
+		// now that we have their userId, we can create a new UUID to prevent collisions
+		// and mis-identification down the line
+		cookie = generateCookieData();
+		cookie.$userId = replaceId;
+		setCookie(cookie);
 	};
 
 	Harvest.prototype.alwaysInclude = function(data){

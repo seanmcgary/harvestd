@@ -14,7 +14,7 @@ var requireLib = function(lib){
 
 module.exports = (function(){
 	var config = {};
-	if(process.argv[1].match(/harvestd$/i) || process.argv[1].match(/services\/harvestd/i)){
+	if(process.argv[1].match(/harvestd$/i) || process.argv[1].match(/services\/harvestd/i) || process.argv[1].match(/harvestdStandalone(\.js)?$/)){
 		config = require('../harvestd/config');
 	} else {
 		logger.log({

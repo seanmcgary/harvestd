@@ -8,7 +8,6 @@ var config = require('../config');
 var elasticsearchStore = require('./modules/api/elasticsearchStore');
 
 var logwrangler = require('logwrangler');
-var logger = logwrangler.create();
 
 // express related stuff
 var express = require('express');
@@ -17,45 +16,56 @@ var cookieParser = require('cookie-parser');
 
 var expressWrangler = require('express-wrangler');
 
-var server = express();
-server.use(bodyParser.json());
-server.use(cookieParser());
-server.use(expressWrangler({
-	logger: logger
-}));
+exports.create = function(options){
+	options = options || {};
 
-server.use(function(req, res, next){
+	logger = options.logger || logwrangler.create();
 
-	res.handleError = function(error, data){
-		res.responseError = {
-			error: error,
-			data: data
+	var Store = options.store || new elasticsearchStore.create(config.elasticsearch);
+
+
+	var server = express();
+	server.use(bodyParser.json());
+	server.use(cookieParser());
+
+	server.use(expressWrangler({
+		logger: logger
+	}));
+
+	server.use(function(req, res, next){
+
+		res.handleError = function(error, data){
+			res.responseError = {
+				error: error,
+				data: data
+			};
+
+			res.json((error && error.type && error.type.statusCode || 500), {
+				error: error,
+				data: data
+			});
 		};
+		next();
+	});
 
-		res.json((error && error.type && error.type.statusCode || 500), {
-			error: error,
-			data: data
+	var startServer = function(){
+		server.listen(config.server.port);
+		logger.log({
+			level: logger.levels.INFO,
+			type: logger.types.SUCCESS,
+			ns: 'harvestd-server',
+			message: 'Server started on port ' + config.server.port
 		});
 	};
-	next();
-});
 
-var startServer = function(){
-	server.listen(config.server.port);
-	logger.log({
-		level: logger.levels.INFO,
-		type: logger.types.SUCCESS,
-		ns: 'harvestd-server',
-		message: 'Server started on port ' + config.server.port
-	});
+
+	require('./modules/api/routes')(server, config, Store);
+
+	return {
+		server: server,
+		start: startServer
+	};
 };
-
-var Store = new elasticsearchStore.create(config.elasticsearch);
-
-
-require('./modules/api/routes')(server, config, Store);
-
-startServer();
 
 
 

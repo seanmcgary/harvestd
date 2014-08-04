@@ -145,7 +145,7 @@ are identified.
 ```identify()``` should be called whenever a user can be identified; this could be after signup, login, or at any other point that a user's identity is determined in your app.
 
 ```
-POST /track
+POST /identify
 Content-Type: application/json
 
 {

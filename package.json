@@ -1,10 +1,12 @@
 {
-  "name": "harvest",
+  "name": "harvestd",
   "version": "0.0.1",
-  "description": "User stats collector",
-  "main": "index.js",
+  "description": "User stats collector daemon",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "harvestd": "./services/bin/harvestdStandalone.js"
   },
   "repository": {
     "type": "git",

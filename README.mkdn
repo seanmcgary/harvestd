@@ -3,3 +3,100 @@
 - harvest daemon (harvestd)
 - harvest client
 - harvest front-end/visualizer
+
+
+## Run standalone
+
+```
+npm install --global harvestd
+
+harvestd
+```
+
+## Use as a library
+
+```
+npm install harvestd
+```
+
+```javascript
+var Harvestd = require('harvestd');
+
+var server = Harvestd.create({
+	logger: logWranglerInst, 	// optional paramter to provide your own logwrangler object
+	store: customStore 			// optional paramter to provide your own store interface
+});
+
+server.start();
+
+```
+
+## Creating a custom store
+
+```javascript
+var Q = require('q');
+var Harvestd = require('harvestd');
+
+function MyStore(){
+	// do whatever initialization you want
+}
+
+MyStore.prototype = Object.create(Harvestd.Store.prototype);
+
+/**
+	@string token		Identification token
+	@string event 		The event name
+	@object data		Object literal representing the data that needs to be inserted
+*/
+MyStore.prototype.track = function(token, event, data){
+	// Impelment me
+
+	// must return a thennable promise
+	return Q.resolve();
+};
+
+
+/**
+	@string token		Identification token
+	@string uuid 		The uuid to use to find events to set the userId on
+	@string userId		The userId to set
+*/
+MyStore.prototype.identify = function(token, uuid, userId){
+	// Impelment me
+
+	// must return a thennable promise
+	return Q.resolve();
+};
+
+var server = Harvestd.create({
+	store: new MyStore() 			// optional paramter to provide your own store interface
+});
+
+server.start();
+```
+
+
+## Available helper functions in the Store prototype:
+
+### ```Store.prototype.formatAttribute(str)```
+
+Takes an attribute and formats it. If you pass and object or an array, it will traverse it, formatting all nested fields.
+
+The main purpose is to ensure that values are the correct types. For example:
+
+```javascript
+	var data = {
+		someBool: "true"
+	};
+
+	data = Store.prototype.formatAttribute(data);
+
+	/*
+		The string "true" is converted into an actual boolean value. 
+		{
+			someBool: true
+		}
+	*/
+```
+
+

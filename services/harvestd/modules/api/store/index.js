@@ -6,7 +6,6 @@ var q = require('q');
 var _ = require('lodash');
 
 
-
 function Store(){
 
 };
@@ -16,7 +15,7 @@ Store.prototype.track = function(token, event, data){
 	return q.resolve();
 };
 
-Store.prototype.identify = function(token, from, to){
+Store.prototype.identify = function(token, uuid, userId){
 	return q.resolve();
 };
 

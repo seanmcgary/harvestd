@@ -5,7 +5,9 @@ var _ = require('lodash');
 var q = require('q');
 
 var config = require('../config');
+var baseStore = require('./modules/api/store');
 var elasticsearchStore = require('./modules/api/elasticsearchStore');
+
 
 var logwrangler = require('logwrangler');
 
@@ -15,6 +17,9 @@ var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 
 var expressWrangler = require('express-wrangler');
+
+exports.Store = baseStore;
+exports.ESStore = elasticsearchStore;
 
 exports.create = function(options){
 	options = options || {};

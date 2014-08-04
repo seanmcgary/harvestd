@@ -14,12 +14,13 @@ var logger = logwrangler.create();
 var express = require('express');
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
-var middlewares = config.requireLib('/modules/middlewares');
+
+var expressWrangler = require('express-wrangler');
 
 var server = express();
 server.use(bodyParser.json());
 server.use(cookieParser());
-server.use(middlewares.requestLogger({
+server.use(expressWrangler({
 	logger: logger
 }));
 

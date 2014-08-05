@@ -114,7 +114,7 @@ The main purpose is to ensure that values are the correct types. For example:
 
 ## API Routes
 
-### track
+### Track
 
 Track an event with any arbitrary amount of data. See [services/harvestd/modules/api/elasticsearchStore/mappings](services/harvestd/modules/api/elasticsearchStore/mappings.js) for an example of available fields (if using the ESStore handler).
 
@@ -132,7 +132,7 @@ Content-Type: application/json
 ```
 
 
-### identify
+### Identify
 
 Identify is used to associate tracked events with a particular UUID with some kind of userId from
 your own backend. This can be any string value you want - an integer user id, a user's email, etc, as
@@ -153,5 +153,17 @@ Content-Type: application/json
 	"uuid": "client uuid"
 	"userId": "ID of identified user"
 }
+```
+
+## Using the web client
+
+Include the client on your page:
+
+```html
+
+<script type="text/javascript" src="//<domain where your harvestd instance is>/js/client.js"></script>
+<script type="text/javascript">
+	
+</script>
 ```
 

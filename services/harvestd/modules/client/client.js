@@ -1,5 +1,3 @@
-
-
 (function(window){
 	var $;
 	var jqCdn = '//code.jquery.com/jquery-1.11.0.min.js';
@@ -54,7 +52,21 @@
 	};
 	loadJquery(function(){
 		initJqCookie(jQuery, jQuery);
+
+		window.Harvest = Harvest;
 	});
+
+	var getQueryParams = function(){
+		var params = {};
+		if(location.search.length > 1){
+			var query = location.search.substr(1).split('&');
+			for(var i = 0; i < query.length; i++){
+				var q = query[i].split('=');
+				params[q[0]] = q[1];
+			}
+		}
+		return params;
+	};
 
 	var generateCookieData = function(){
 		var cookie = {
@@ -141,6 +153,17 @@
 			compiledData[k] = data[k];
 		}
 
+		var queryParams = getQueryParams();
+		var utm = ['utm_source', 'utm_campaign', 'utm_medium', 'utm_content', 'utm_term'];
+		for(var i = 0; i < utm.length; i++){
+			if(queryParams[utm[i]]){
+				if(!compiledData.utm){
+					compiledData.utm = {};
+				}
+				compiledData.utm[utm[i].replace('utm_', '')] = queryParams[utm[i]];
+			}
+		}
+
 		preTrack(event, compiledData, function(event, data){
 			var cookie = getCookie();
 			data.$uuid = cookie.$uuid;
@@ -149,6 +172,8 @@
 				token: self.token,
 				data: data
 			};
+
+			console.log(data);
 
 			sendTrack(data);
 			setCookie();
@@ -178,7 +203,6 @@
 		}
 	};
 
-	window.Harvest = Harvest;
-
 })(window);
+
 

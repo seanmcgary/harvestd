@@ -110,7 +110,36 @@ module.exports = {
 							"type": "string",
 							"store": true
 						},
-						"testGroups": {
+						"utm": {
+							"properties":{
+								"campaign": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"source": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"medium": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"content": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								},
+								"term": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
+								}
+							}
+						},
+						"group": {
 							"properties": {
 								"name": {
 									"index": "not_analyzed",

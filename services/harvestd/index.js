@@ -28,12 +28,22 @@ exports.create = function(options){
 
 	var Store = options.store || new elasticsearchStore.create(config.elasticsearch);
 
+	if(options.config){
+		config.server = _.extend(_.cloneDeep(config.server), options.config);
+	}
+
 
 	var server = express();
 	server.use(bodyParser());
 	//server.use(bodyParser.json());
 	//server.use(bodyParser.urlencoded({ extended: false }));
-	server.use(cookieParser());
+	server.use(cookieParser({
+		domain: config.server.cookieDomain,
+		secure: config.server.cookieSecure,
+		maxAge: config.server.cookieMaxAge,
+		httpOnly: config.server.cookieHttpOnly,
+		path: config.server.cookiePath
+	}));
 
 	server.use(expressWrangler({
 		logger: logger

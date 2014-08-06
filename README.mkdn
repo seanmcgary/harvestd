@@ -11,7 +11,12 @@
 
 ```bash
 # webserver
-HARVESTD_SERVER_PORT 					#port to run the harvestd webserver on
+HARVESTD_SERVER_PORT 					# port to run the harvestd webserver on
+HARVESTD_SERVER_COOKIE_DOMAIN 			# domain for your cookies 
+HARVESTD_SERVER_COOKIE_SECURE 			# make it a secure cookie
+HARVESTD_SERVER_COOKIE_MAX_AGE 			# max age
+HARVESTD_SERVER_COOKIE_HTTP_ONLY 		# http only?
+HARVESTD_SERVER_COOKIE_PATH 			# valid path
 
 # elasticsearch store
 HARVESTD_ELASTICSEARCH_HOST				# elasticsearch host
@@ -22,7 +27,8 @@ HARVESTD_ELASTICSEARCH_TYPE				# the name of the type events will be stored as
 ```
 
 ### Install and run
-```
+
+```bash
 npm install --global harvestd
 
 harvestd
@@ -39,12 +45,18 @@ npm install harvestd
 var Harvestd = require('harvestd');
 
 var server = Harvestd.create({
-	logger: logWranglerInst, 	// optional paramter to provide your own logwrangler object
-	store: customStore 			// optional paramter to provide your own store interface
+	logger: logWranglerInst, 				// optional paramter to provide your own logwrangler object
+	store: customStore 						// optional paramter to provide your own store interface
+	config: {
+		cookieDomain: 'mydomain.com',		// defaults to localhost
+		cookieSecure: false, 				// defaults to false
+		cookieMaxAge: 365 * 60 * 24 * 24,	// defaults to 1 year (in seconds)
+		cookieHttpOnly: true 				// defaults to true
+	}
 });
 
-server.start(); 				// If you dont want the default port (9000) you can pass one as the 
-								// first argument to "server.start(8080)"
+server.start(); 						// If you dont want the default port (9000) you can pass one as the 
+										// first argument to "server.start(8080)"
 
 ```
 

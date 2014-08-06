@@ -32,8 +32,6 @@ exports.create = function(options){
 		config.server = _.extend(_.cloneDeep(config.server), options.config);
 	}
 
-	console.log(config);
-
 	var server = options.server || express();
 	server.use(bodyParser());
 	server.use(cookieParser({

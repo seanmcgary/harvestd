@@ -17,6 +17,7 @@ HARVESTD_SERVER_COOKIE_SECURE 			# make it a secure cookie
 HARVESTD_SERVER_COOKIE_MAX_AGE 			# max age
 HARVESTD_SERVER_COOKIE_HTTP_ONLY 		# http only?
 HARVESTD_SERVER_COOKIE_PATH 			# valid path
+HARVESTD_SERVER_ALLOW_CORS 				# allow CORS - useful if your harvestd process is on a different domain
 
 # elasticsearch store
 HARVESTD_ELASTICSEARCH_HOST				# elasticsearch host
@@ -52,6 +53,7 @@ var server = Harvestd.create({
 		cookieSecure: false, 				// defaults to false
 		cookieMaxAge: 365 * 60 * 24 * 24,	// defaults to 1 year (in seconds)
 		cookieHttpOnly: true 				// defaults to true
+		allowCORS: true 					// defaults to true
 	},
 	server: express() 						// optionally provide an express server instance
 });
@@ -150,7 +152,7 @@ Harvestd comes with a really simple layer that will store everything in Elastics
 ```javascript
 var Harvestd = require('harvestd');
 
-var store = new Harvestd.ESStore({
+var store = Harvestd.ESStore.create({
 	host: '127.0.0.1', 		// defaults to localhost
 	port: 9200, 			// defaults to 9200
 	apiVersion: '1.1', 		// defaults to the latest ES API version

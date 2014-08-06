@@ -5,6 +5,7 @@
 
 	var requestQueue = [];
 	var harvestInst;
+	var destination = '';
 
 
 	var initJqCookie = function($, jQuery){
@@ -134,8 +135,9 @@
 	// pretrack is a function that will get called before each track.
 	// gives you the opportunity to set things on each event
 	var sendTrack = function(data){
+		var path = '/track';
 		return jQuery.ajax({
-			url: '//localhost:9000/track',
+			url: [destination, path].join(''),
 			type: 'post',
 			dataType: 'json',
 			data: data
@@ -143,8 +145,10 @@
 	};
 
 	var sendIdentify = function(data){
+		var path = '/identify';
+
 		return jQuery.ajax({
-			url: '//localhost:9000/identify',
+			url: [destination, path].join(''),
 			type: 'post',
 			dataType: 'json',
 			data: data
@@ -155,9 +159,13 @@
 		cb(event, data); 
 	};
 
-	function Harvest(token){
+	function Harvest(token, destinationHost){
 		this.token = token;
 		this._alwaysInclude = {};
+
+		if(destinationHost){
+			destination = destinationHost;
+		}
 
 		if(!isReady){
 			requestQueue.push(['getCookie']);
@@ -254,9 +262,9 @@
 		}
 	};
 
-	window.Harvest = function(token){
+	window.Harvest = function(token, destinationHost){
 		if(!harvestInst){
-			harvestInst = new Harvest(token);
+			harvestInst = new Harvest(token, destinationHost);
 		}
 		return harvestInst;
 	};

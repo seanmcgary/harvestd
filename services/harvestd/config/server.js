@@ -6,7 +6,8 @@ var base = {
 	cookieSecure: false,
 	cookieMaxAge: 60 * 60 * 24 * 365,
 	cookieHttpOnly: true,
-	cookiePath: '/'
+	cookiePath: '/',
+	allowCORS: true
 };
 
 var envs = {
@@ -20,7 +21,8 @@ var envMap = {
 	'HARVESTD_SERVER_COOKIE_SECURE': 'cookieSecure',
 	'HARVESTD_SERVER_COOKIE_MAX_AGE': 'cookieMaxAge',
 	'HARVESTD_SERVER_COOKIE_HTTP_ONLY': 'cookieHttpOnly',
-	'HARVESTD_SERVER_COOKIE_PATH': 'cookiePat',
+	'HARVESTD_SERVER_COOKIE_PATH': 'cookiePath',
+	'HARVESTD_SERVER_ALLOW_CORS': 'allowCORS',
 };
 
 module.exports = function(env){

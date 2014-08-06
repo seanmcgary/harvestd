@@ -62,6 +62,14 @@ exports.create = function(options){
 		next();
 	});
 
+	var allowCORS = config.server.allowCORS;
+	if((_.isString(allowCORS) && allowCORS == 'true') || allowCORS  === true){
+		server.use(function(req, res, next){
+			res.set('Access-Control-Allow-Origin', '*');
+			next();
+		});
+	}
+
 	var startServer = function(port){
 		server.listen(port || config.server.port);
 		logger.log({

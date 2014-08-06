@@ -13,16 +13,7 @@ var requireLib = function(lib){
 };
 
 module.exports = (function(){
-	var config = {};
-	if(process.argv[1].match(/harvestd$/i) || process.argv[1].match(/services\/harvestd/i) || process.argv[1].match(/harvestdStandalone(\.js)?$/)){
-		config = require('../harvestd/config');
-	} else {
-		logger.log({
-			level: logger.levels.WARN,
-			ns: 'config-proxy',
-			message: 'no config found'
-		});
-	}
+	var config = require('../harvestd/config');
 
 	return _.extend(config, {
 		requireLib: requireLib

@@ -27,7 +27,8 @@ var server = Harvestd.create({
 	store: customStore 			// optional paramter to provide your own store interface
 });
 
-server.start();
+server.start(); 				// If you dont want the default port (9000) you can pass one as the 
+								// first argument to "server.start(8080)"
 
 ```
 

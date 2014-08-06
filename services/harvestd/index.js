@@ -55,8 +55,8 @@ exports.create = function(options){
 		next();
 	});
 
-	var startServer = function(){
-		server.listen(config.server.port);
+	var startServer = function(port){
+		server.listen(port || config.server.port);
 		logger.log({
 			level: logger.levels.INFO,
 			type: logger.types.SUCCESS,

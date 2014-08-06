@@ -52,7 +52,8 @@ var server = Harvestd.create({
 		cookieSecure: false, 				// defaults to false
 		cookieMaxAge: 365 * 60 * 24 * 24,	// defaults to 1 year (in seconds)
 		cookieHttpOnly: true 				// defaults to true
-	}
+	},
+	server: express() 						// optionally provide an express server instance
 });
 
 server.start(); 						// If you dont want the default port (9000) you can pass one as the 

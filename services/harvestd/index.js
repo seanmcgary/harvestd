@@ -33,7 +33,7 @@ exports.create = function(options){
 	}
 
 
-	var server = express();
+	var server = options.server || express();
 	server.use(bodyParser());
 	server.use(cookieParser({
 		domain: config.server.cookieDomain,

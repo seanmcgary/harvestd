@@ -5,6 +5,8 @@
 
 	// TODO - replace this with dynamic domain name
 	var DOMAIN = 'localhost:9000';
+	var requestQueue = [];
+	var harvestInst;
 
 
 	var initJqCookie = function($, jQuery){
@@ -31,10 +33,25 @@
 	var noop = function(){};
 	var isReady = false;
 
+	var processQueue = function(){
+		if(!harvestInst){
+			return;
+		}
+		while(requestQueue.length){
+			var action = requestQueue.pop();
+			var args = [];
+			if(action[1]){
+				for(var k in action[1]){
+					args.push(action[1][k]);
+				}
+			}
+			harvestInst[action[0]].apply(harvestInst, args);
+		}
+	};
+
 	var loadJquery = function(cb){
 		if(window.jQuery){
 			$ = window.jQuery;
-			isReady = true;
 			return cb();
 		}
 
@@ -44,7 +61,7 @@
 		jqLoader.onload = function(){
 			jQuery.noConflict();
 			$ = jQuery;
-			isReady = true;
+			
 			cb && cb();
 		};
 		var head = document.getElementsByTagName('head')[0];
@@ -52,8 +69,9 @@
 	};
 	loadJquery(function(){
 		initJqCookie(jQuery, jQuery);
+		isReady = true;
 
-		window.Harvest = Harvest;
+		processQueue();
 	});
 
 	var getQueryParams = function(){
@@ -66,6 +84,24 @@
 			}
 		}
 		return params;
+	};
+
+	var getReferrer = function(){
+		var r = {
+			referrer: document.referrer || '',
+			referrerDomain: '',
+			referrerPath: ''
+		};
+		
+		if(r.referrer && r.referrer.length){
+			r.referrerDomain = r.referrer.replace(/^https?:\/\//i, '').split('/')[0];
+		}
+
+		if(r.referrer && r.referrer.length){
+			r.referrerPath = r.referrer.replace(/^https?:\/\//i, '').replace(r.referrerDomain, '');
+		}
+
+		return r;
 	};
 
 	var generateCookieData = function(){
@@ -126,7 +162,13 @@
 		this.token = token;
 		this._alwaysInclude = {};
 
-		getCookie();
+		if(!isReady){
+			requestQueue.push(['getCookie']);
+		}
+	};
+
+	Harvest.prototype.getCookie = function(){
+		return getCookie();
 	};
 
 	Harvest.prototype.preTrack = function(handler){
@@ -137,6 +179,11 @@
 
 	Harvest.prototype.track = function(event, data, cb){
 		var self = this;
+
+		if(!isReady){
+			return requestQueue.push(['track', arguments]);
+		}
+
 		data = data || {};
 		cb = (typeof cb === 'function' ? cb : noop);
 
@@ -164,6 +211,11 @@
 			}
 		}
 
+		var referrerData = getReferrer();
+		for(var k in referrerData){
+			compiledData[k] = referrerData[k];
+		}
+
 		preTrack(event, compiledData, function(event, data){
 			var cookie = getCookie();
 			data.$uuid = cookie.$uuid;
@@ -182,6 +234,11 @@
 
 	Harvest.prototype.identify = function(replaceId){
 		var self = this;
+
+		if(!isReady){
+			return requestQueue.push(['identify', arguments]);
+		}
+
 		var cookie = getCookie();
 
 		sendIdentify({
@@ -201,6 +258,13 @@
 		if(data && typeof data === 'object'){
 			this._alwaysInclude = data;
 		}
+	};
+
+	window.Harvest = function(token){
+		if(!harvestInst){
+			harvestInst = new Harvest(token);
+		}
+		return harvestInst;
 	};
 
 })(window);

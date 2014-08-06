@@ -2,6 +2,13 @@
 <html>
 	<head>
 		<script type="text/javascript" src="/js/client.js"></script>
+		<script type="text/javascript">
+			document.addEventListener('DOMContentLoaded', function(){
+				var hvst = Harvest('testtoken');
+
+				hvst.track('some-test-event', { yo: 'dawg' });
+			}, false);
+		</script>
 	</head>
 	<body>
 		

@@ -19,6 +19,10 @@ Store.prototype.identify = function(token, uuid, userId){
 	return q.resolve();
 };
 
+Store.prototype.profile = function(token, id, data){
+	return q.resolve();
+};
+
 Store.prototype.formatAttribute = function(attribute){
 	if(_.isString(attribute) && attribute.length){
 		var attr = attribute.toLowerCase();

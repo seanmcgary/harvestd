@@ -172,6 +172,21 @@ ESStore.prototype.identify = function(token, uuid, userId){
 	});
 };
 
+
+ESStore.prototype.profile = function(token, id, data){
+	var self = this;
+
+	token = self.formatAttribute(token);
+	id = self.formatAttribute(id);
+	data = self.formatAttribute(data);
+
+
+};
+
+ESStore.prototype.getProfile = function(token, id){
+	
+};
+
 exports.ESStore = ESStore;
 exports.create = function(config){
 	return new ESStore(config);

@@ -155,6 +155,24 @@ Content-Type: application/json
 }
 ```
 
+## Customer Profiles
+
+Customer profiles allows you to store information about your customers. Customers need to have some kind of unique identifier - this can be an internal id from your own database, and email, etc.
+
+Due to the possibility of users interacting with more than one platform, it is possible for multiple session UUIDs (used in the track and identify functions). This will help you identify actions taken by each user regardless of platform/location.
+
+```
+POST /profile
+Content-Type: application/json
+
+{
+	"token": "your account token",
+	"$id": "customer unique id",
+	"uuid": "their current UUID"
+}
+
+```
+
 ## Using the web client
 
 Include the client on your page:

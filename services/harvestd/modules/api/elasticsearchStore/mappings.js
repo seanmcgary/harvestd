@@ -95,6 +95,11 @@ module.exports = {
 							"type": "string",
 							"store": true
 						},
+						"referrerPath": {
+							"index": "not_analyzed",
+							"type": "string",
+							"store": true
+						},
 						"campaigns": {
 							"index": "not_analyzed",
 							"type": "string",

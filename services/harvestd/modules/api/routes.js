@@ -112,4 +112,8 @@ module.exports = function(server, config, Store){
 		}, res.handleError);
 	});
 
+	server.post('/profile', function(req, res){
+
+	});
+
 };

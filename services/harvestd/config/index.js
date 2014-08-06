@@ -3,7 +3,7 @@ var _ = require('lodash');
 var env = process.NODE_ENV || 'development';
 
 var requireConfig = function(conf){
-	return require('./' + conf + '.js')[env];
+	return require('./' + conf + '.js')(env);
 };
 
 var config = {

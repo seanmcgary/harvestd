@@ -7,11 +7,27 @@
 
 ## Run standalone
 
+### Environment variables
+
+```bash
+# webserver
+HARVESTD_SERVER_PORT 					#port to run the harvestd webserver on
+
+# elasticsearch store
+HARVESTD_ELASTICSEARCH_HOST				# elasticsearch host
+HARVESTD_ELASTICSEARCH_PORT				# elasticsearch port
+HARVESTD_ELASTICSEARCH_API_VERSION		# elasticsearch API version to use
+HARVESTD_ELASTICSEARCH_INDEX			# the index to store everything
+HARVESTD_ELASTICSEARCH_TYPE				# the name of the type events will be stored as
+```
+
+### Install and run
 ```
 npm install --global harvestd
 
 harvestd
 ```
+
 
 ## Use as a library
 

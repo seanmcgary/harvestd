@@ -3,8 +3,6 @@
 	var jqCdn = '//code.jquery.com/jquery-1.11.0.min.js';
 	var COOKIE_NAME = 'harvestd';
 
-	// TODO - replace this with dynamic domain name
-	var DOMAIN = 'localhost:9000';
 	var requestQueue = [];
 	var harvestInst;
 
@@ -28,7 +26,6 @@
 	    };
 	    return (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
 	};
-
 
 	var noop = function(){};
 	var isReady = false;
@@ -224,9 +221,6 @@
 				token: self.token,
 				data: data
 			};
-
-			console.log(data);
-
 			sendTrack(data);
 			setCookie();
 		});

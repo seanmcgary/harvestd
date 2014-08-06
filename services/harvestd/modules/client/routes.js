@@ -13,6 +13,8 @@ module.exports = function(server, config, Store){
 
 	server.get('/js/client.js', function(req, res){
 
+		
+
 		res.set('Content-Type', 'text/javascript');
 		res.send(jsClient);
 	});

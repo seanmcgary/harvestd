@@ -112,6 +112,29 @@ The main purpose is to ensure that values are the correct types. For example:
 	*/
 ```
 
+## ESStore Storage Layer
+
+Harvestd comes with a really simple layer that will store everything in Elasticsearch. 
+
+### Creation
+```javascript
+var Harvestd = require('harvestd');
+
+var store = new Harvestd.ESStore({
+	host: '127.0.0.1', 		// defaults to localhost
+	port: 9200, 			// defaults to 9200
+	apiVersion: '1.1', 		// defaults to the latest ES API version
+	index: 'analytics', 	// the index to store everything. Defaults to "analytics"
+	type: 'event' 			// the name of the type things will be stored as. Defaults to "event"
+});
+
+var server = Harvestd.create({
+	store: store
+});
+
+server.start();
+```
+
 ## API Routes
 
 ### Track

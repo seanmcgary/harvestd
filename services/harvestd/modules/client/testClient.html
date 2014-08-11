@@ -7,6 +7,8 @@
 				var hvst = Harvest('testtoken');
 
 				hvst.track('some-test-event', { yo: 'dawg' });
+				hvst.track('another-immediate-event', { yo: 'dawg' });
+				hvst.identify(123456);
 			}, false);
 		</script>
 	</head>

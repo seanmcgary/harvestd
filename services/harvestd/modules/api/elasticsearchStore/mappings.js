@@ -115,6 +115,11 @@ module.exports = {
 							"type": "string",
 							"store": true
 						},
+						"version": {
+							"index": "not_analyzed",
+							"type": "string",
+							"store": true
+						},
 						"utm": {
 							"properties":{
 								"campaign": {

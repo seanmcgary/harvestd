@@ -34,7 +34,7 @@ exports.create = function(options){
 
 	var server = options.server || express();
 	server.use(bodyParser());
-	server.use(cookieParser({
+	server.use(cookieParser('secret', {
 		domain: config.server.cookieDomain,
 		secure: config.server.cookieSecure,
 		maxAge: config.server.cookieMaxAge,

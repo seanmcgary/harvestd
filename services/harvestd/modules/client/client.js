@@ -21,6 +21,23 @@
 		{$this.html(value);}}break;}}});},cookieBind:function(options){return this.each(function(){var $this=$(this);$this.cookieFill().change(function(){$this.cookify(options);});});}};$.each(extensions,function(i){$.fn[i]=this;});})(window.jQuery);}})();
 	};
 
+	var config = {
+		batchSize: 5,
+		debug: true
+	};
+
+	if(window._harvestConfig){
+		for(var i in window._harvestConfig){
+			config[i] = window._harvestConfig[i];
+		}
+	}
+
+	var log = function(data, isError){
+		if(config.debug){
+			console[isError ? 'error' : 'log'](data);
+		}
+	};
+
 	var $;
 
 	var jqCdn = '//code.jquery.com/jquery-1.11.0.min.js';
@@ -60,7 +77,7 @@
 			},
 			process: function(){
 				var self = this;
-				var actions = self.pop(5);
+				var actions = self.pop(config.batchSize);
 				if(actions && actions.length){
 					sendBatch(actions);
 				}
@@ -198,6 +215,7 @@
 		cb = (typeof cb === 'function' ? cb : noop);
 
 		if(!event || !event.length){
+			log('event name is required', true);
 			return cb(true, { event: 'event name is required' });
 		}
 
@@ -247,8 +265,9 @@
 	Harvest.prototype.identify = function(replaceId){
 		var self = this;
 
-		if(!isReady){
-			
+		if(!replaceId || !replaceId.length){
+			log('please provide a userId', true);
+			return false;
 		}
 
 		var cookie = getCookie();

@@ -32,6 +32,11 @@ exports.types = {
 		statusCode: 403,
 		message: 'Invalid or missing API token',
 		code: 'invalid_api_token'
+	},
+	INVALID_FIELDS: {
+		statusCode: 400,
+		message: 'Invalid fields',
+		code: 'invalid_fields'
 	}
 };
 

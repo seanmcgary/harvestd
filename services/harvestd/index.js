@@ -33,7 +33,9 @@ exports.create = function(options){
 	}
 
 	var server = options.server || express();
-	server.use(bodyParser());
+	server.use(bodyParser.urlencoded({ extended: true }));
+	server.use(bodyParser.json());
+	server.use(bodyParser.json({ type: 'application/json' }));
 	server.use(cookieParser('secret', {
 		domain: config.server.cookieDomain,
 		secure: config.server.cookieSecure,

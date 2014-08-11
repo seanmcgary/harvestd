@@ -1,17 +1,19 @@
 var _ = require('lodash');
 var q = require('q');
 var config = require('../../../config');
+var async = require('async');
 
 var errorTypes = config.requireLib('/modules/errorTypes').types;
 var ApiError = config.requireLib('/modules/errorTypes').ApiError;
 
+
 module.exports = function(server, config, Store){
 
-	var validateTrackFields = function(req, res, next){
+	var validateTrackFields = function(data){
 		var errors = false;
 		var errorData = {};
 
-		var data = req.body || {};
+		var data = data || {};
 
 		if(!data.event || !data.event.length){
 			errors = true;
@@ -40,10 +42,10 @@ module.exports = function(server, config, Store){
 		}
 
 		if(errors){
-			return res.handleError(new ApiError(errorTypes.MISSING_FIELDS, errorData));
+			return q.reject(new ApiError(errorTypes.MISSING_FIELDS, errorData));
 		}
 
-		next();
+		return q.resolve();
 	};
 
 	/**
@@ -61,18 +63,25 @@ module.exports = function(server, config, Store){
 			}
 		}	
 	*/
-	server.post('/track', validateTrackFields, function(req, res){
-		Store.track(req.body.token, req.body.event, req.body.data)
+	var trackEvent = function(data){
+		return validateTrackFields(data)
+		.then(function(){
+			return Store.track(data.token, data.event, data.data);
+		});
+	};
+
+	server.post('/track', function(req, res){
+		trackEvent(req.body)
 		.then(function(result){
 			res.json(result);
 		}, res.handleError);
 	});
 
-	var validateIdentifyFields = function(req, res, next){
+	var validateIdentifyFields = function(data){
 		var errors = false;
 		var errorData = {};
 
-		var data = req.body || {};
+		var data = data || {};
 
 		if(!data.token || !data.token.length){
 			errors = true;
@@ -90,10 +99,9 @@ module.exports = function(server, config, Store){
 		}
 
 		if(errors){
-			return res.handleError(new ApiError(errorTypes.MISSING_FIELDS, errorData));
+			return q.reject(new ApiError(errorTypes.MISSING_FIELDS, errorData));
 		}
-
-		next();
+		return q.resolve();
 	};
 
 	/**
@@ -105,14 +113,64 @@ module.exports = function(server, config, Store){
 			userId: ''								// the ID that should overwrite that previous ID
 		}	
 	*/
-	server.post('/identify', validateIdentifyFields, function(req, res){
-		Store.identify(req.body.token, req.body.uuid, req.body.userId)
+	var identifyUser = function(data){
+		return validateIdentifyFields(data)
+		.then(function(){
+			return Store.identify(data.token, data.uuid, data.userId);
+		});
+	};
+
+	server.post('/identify', function(req, res){
+		identifyUser(req.body)
 		.then(function(result){
 			res.json(result);
 		}, res.handleError);
 	});
 
-	server.post('/profile', function(req, res){
+	server.post('/actions', function(req, res){
+		var actions = req.body.actions;
+
+		if(!actions || !_.isArray(actions) || !actions.length){
+			return res.handleError(new ApiError(errorTypes.INVALID_FIELDS, {
+				actions: 'Actions should be an array of actions'
+			}));
+		}
+
+		// no need to wait for everything to finish
+		res.json(200, {});
+
+		var queue = [];
+		var results = Array(actions.length);
+		_.each(actions, function(action, index){
+			queue.push((function(action, index){
+				return function(cb){
+					var promise;
+					switch(action[0]){
+						case 'track':
+							promise = trackEvent(action[1]);
+							break;
+						case 'identify':
+							promise = identifyUser(action[1]);
+							break;
+						default:
+							promise = q.resolve();
+							break;
+					}
+
+					promise
+					.then(function(r){
+						results[index] = true;
+						cb(null);
+					}, function(err){
+						results[index] = err;
+						cb(null);
+					});
+				};
+			})(action, index));
+		});
+		async.series(queue, function(){
+
+		});
 
 	});
 

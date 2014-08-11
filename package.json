@@ -21,11 +21,12 @@
     "lodash": "~2.4.1",
     "q": "~1.0.1",
     "express": "~4.7.2",
-    "body-parser": "~1.5.2",
     "cookie-parser": "~1.3.2",
     "logwrangler": "0.0.9",
     "elasticsearch": "~2.4.0",
     "node-uuid": "~1.4.1",
-    "express-wrangler": "~0.1.0"
+    "express-wrangler": "~0.1.0",
+    "body-parser": "~1.6.3",
+    "async": "~0.9.0"
   }
 }

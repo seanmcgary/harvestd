@@ -2,6 +2,8 @@ var Store = require('../store');
 var q = require('q');
 var _ = require('lodash');
 var elasticsearch = require('elasticsearch');
+var logwrangler = require('logwrangler');
+var logger = logwrangler.create();
 
 var client;
 var createConnection = function(config, forceCreate){
@@ -82,9 +84,20 @@ ESStore.prototype.track = function(token, event, data){
 
 
 	return self.ready.then(function(){
+		logger.log({
+			level: logger.levels.INFO,
+			ns: 'ESStore',
+			message: 'track',
+			data: {
+				event: event,
+				token: token,
+				data: data
+			}
+		});
 		return self.es.create({
 			index: self.config.index,
 			type: self.config.type,
+			refresh: true,
 			body: {
 				token: token,
 				event: event,
@@ -151,7 +164,16 @@ ESStore.prototype.identify = function(token, uuid, userId){
 	userId = self.formatAttribute(userId);
 
 	return self.ready.then(function(){
-
+		logger.log({
+			level: logger.levels.INFO,
+			ns: 'ESStore',
+			message: 'identify',
+			data: {
+				token: token,
+				uuid: uuid,
+				userId: userId
+			}
+		});
 		var updateQueue = [];
 		return findMatchingDocuments.call(self, token, uuid)
 		.then(function(matches){

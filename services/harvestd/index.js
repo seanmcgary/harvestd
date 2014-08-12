@@ -21,6 +21,8 @@ var expressWrangler = require('express-wrangler');
 exports.Store = baseStore;
 exports.ESStore = elasticsearchStore;
 
+console.log(config);
+
 exports.create = function(options){
 	options = options || {};
 
@@ -85,6 +87,7 @@ exports.create = function(options){
 
 	require('./modules/api/routes')(server, config, Store);
 	require('./modules/client/routes')(server, config, Store);
+	config.requireLib('/modules/analytics/routes')(server, config, Store);
 
 	return {
 		server: server,

@@ -4,6 +4,11 @@ var _ = require('lodash');
 var elasticsearch = require('elasticsearch');
 var logwrangler = require('logwrangler');
 var logger = logwrangler.create();
+var config = require('../../../config');
+var moment = require('moment-timezone');
+
+var errorTypes = config.requireLib('/modules/errorTypes').types;
+var ApiError = config.requireLib('/modules/errorTypes').ApiError;
 
 var client;
 var createConnection = function(config, forceCreate){
@@ -40,6 +45,13 @@ function ESStore(esConfig){
 
 	this.ready = client.ready;
 	this.es = client.client;
+};
+
+var parseAggregations = function(results){
+	if(results && results.aggregations){
+		return results.aggregations;
+	}
+	return {};
 };
 
 ESStore.prototype = Store.prototype;
@@ -221,18 +233,286 @@ ESStore.prototype.identify = function(token, uuid, userId){
 	});
 };
 
-
-ESStore.prototype.profile = function(token, id, data){
+ESStore.prototype.listEvents = function(){
 	var self = this;
 
-	token = self.formatAttribute(token);
-	id = self.formatAttribute(id);
-	data = self.formatAttribute(data);
+	return self.ready.then(function(){
+		return self.es.search({
+			index: self.config.index,
+			type: self.config.type,
+			body: {
+				query: { match_all: {} },
+				aggs: {
+					events: {
+						terms: {
+							field: "event",
+							size: 0 		// Integer.MAX_VALUE
+						}
+					}
+				}
+			}
+		})
+		.then(function(results){
+			results = parseAggregations(results);
+			var events = _.map(results.events.buckets, function(b){
+				return b.key;
+			});
+			return events || [];
+		});
+	});
 };
 
-ESStore.prototype.getProfile = function(token, id){
+var validPeriods = ['minute', 'day', 'hour', 'week', 'month'];
+var defaultPeriod = 'day';
 
+var validateArguments = function(events, from, until, tzOffset, period){
+	tzOffset = tzOffset || 'America/Los_Angeles';
+
+	if(events && _.isString(events) && events.length){
+		events = events.replace(', ', ',').split(',');
+	} else {
+		return q.reject(new ApiError(errorTypes.MISSING_FIELDS, {
+			events: 'please provide one or more event names'
+		}));
+	}
+
+	var now = new Date();
+
+	if(!period || _.indexOf(validPeriods, period) < 0){
+		period = defaultPeriod;
+	}
+
+	if(!from || from == 'Invalid Date'){
+		from = new Date(new Date().setUTCDate(now.getUTCDate() - 30));
+	}
+
+	if(!until || until == 'Invalid Date'){
+		until = new Date(now.getTime());
+	}
+
+	var tz = moment(new Date()).tz(tzOffset);
+	var gmtOffset = (tz.zone() / 60) * -1;
+
+	return q.all([events, from, until, tzOffset, period, gmtOffset]);
 };
+
+var buildRange = function(from, until){
+	var range = {
+		$ts: {
+			gte: from.getTime(),
+			lte: until.getTime()
+		}
+	};
+	return range;
+};
+
+ESStore.prototype.getTrends = function(events, from, until, tzOffset, period){
+	var self = this;
+
+	return validateArguments(events, from, until, tzOffset, period)
+	.spread(function(events, from, until, tzOffset, period, gmtOffset){
+		
+		var range = buildRange(from, until);
+
+		var terms = _.map(events, function(evt){
+			return {
+				term: { event: evt }
+			}
+		});
+
+		var query = {
+			query: {
+				filtered: {
+					filter: {
+						and: [
+							{
+								range: range
+							}, {
+								or: terms
+							}
+						]
+					}
+				}
+			},
+			aggs: {
+				trends: {
+					date_histogram: {
+						field: '$tsDate',
+						min_doc_count: 0,
+						interval: period,
+						time_zone: gmtOffset,
+						extended_bounds: {
+							min: from.getTime(),
+							max: until.getTime()
+						}
+					},
+					aggs: {
+						events: {
+							terms: {
+								field: 'event'
+							}
+						}
+					}
+				}
+			}
+		};
+
+		//console.log(JSON.stringify(query, null, '\t'));
+
+		
+		return self.ready.then(function(){
+			return self.es.search({
+				index: self.config.index,
+				type: self.config.type,
+				body: query
+			})
+			.then(function(results){
+				results = parseAggregations(results);
+				if(!results || !results.trends.buckets){
+					return q.reject(new ApiError(errorTypes.DB_ERROR, 'error parsing es results'));
+				}
+
+				results = results.trends.buckets;
+
+				results = _.map(results, function(bucket){
+					var bukkit = {
+						dateString: bucket.key_as_string,
+						timestamp: bucket.key,
+						events: {}
+					};
+
+					var bucketEvents = bucket.events.buckets || [];
+
+					_.each(events, function(evt){
+						var bev = _.find(bucketEvents, function(b){ return b.key == evt; });
+						bukkit.events[evt] = bev ? bev.doc_count : 0;
+					});
+
+					return bukkit;
+				});
+				return results;
+			})
+			.then(function(results){
+				return {
+					from: from,
+					until: until,
+					period: period,
+					tzOffset: tzOffset,
+					gmtOffset: gmtOffset,
+					events: events,
+					data:results
+				}
+			});
+		});
+	});
+};
+
+ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, field, segmentBy){
+	var self = this;
+	
+	if(segmentBy.length && !segmentBy.match(/^data\./)){
+		segmentBy = ['data.', segmentBy].join('');
+	}
+
+	return validateArguments(event, from, until, tzOffset, period)
+	.spread(function(event, from, until, tzOffset, period, gmtOffset){
+		event = event[0];
+
+		var range = buildRange(from, until);
+
+		var calculate = {
+			calculate: {
+				stats: {
+					field: field
+				}
+			}
+		};
+
+		var primaryAgg = _.cloneDeep(calculate);
+
+		if(segmentBy && segmentBy.length){
+
+			primaryAgg.segmented = {
+				terms: {
+					field: segmentBy
+				},
+				aggs: calculate
+			};
+		}
+		
+
+		var query = {
+			query: {
+				filtered: {
+					filter: {
+						and: [
+							{
+								range: range
+							}, {
+								term: { event: event }
+							}
+						]
+					}
+				}
+			},
+			aggs: primaryAgg
+		};
+		
+		return self.ready.then(function(){
+			return self.es.search({
+				index: self.config.index,
+				type: self.config.type,
+				body: query
+			})
+			.then(function(results){
+				results = parseAggregations(results);
+
+				var returnData = {
+					all: {
+						segmentBy: 'none',
+						values: {
+							fieldValue: '',
+							numberOfFields: results.calculate.count,
+							values: results.calculate
+						}
+					}
+				};
+
+				if(results.segmented && results.segmented.buckets && results.segmented.buckets.length){
+					returnData.segmented = {
+						segmentBy: segmentBy,
+						values: _.map(results.segmented.buckets, function(b){
+							var bukkit = {
+								fieldValue: b.key,
+								numberOfFields: b.doc_count,
+								values: b.calculate
+							};
+							return bukkit;
+						})
+					};
+				}
+				
+				return returnData;
+			})
+			.then(function(results){
+				return {
+					from: from,
+					until: until,
+					period: period,
+					tzOffset: tzOffset,
+					gmtOffset: gmtOffset,
+					event: event,
+					field: field,
+					data:results
+				}
+			});
+		});
+
+
+
+	});
+};
+
 
 exports.ESStore = ESStore;
 exports.create = function(config){

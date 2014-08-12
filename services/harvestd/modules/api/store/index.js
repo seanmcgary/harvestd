@@ -4,12 +4,12 @@
 
 var q = require('q');
 var _ = require('lodash');
+var logwrangler = require('logwrangler');
+var logger = logwrangler.create({
+	level: logwrangler.levels.DEBUG
+});
 
-
-function Store(){
-
-};
-
+function Store(){ };
 
 Store.prototype.track = function(token, event, data){
 	return q.resolve();
@@ -51,6 +51,72 @@ Store.prototype.formatAttribute = function(attribute){
 		return attribute;
 	}
 	return attribute;
+};
+
+/**
+	Return a list of event names
+
+	[
+		'some-event',
+		'Hold my beer',
+		'Watch this'
+	]
+*/
+Store.prototype.listEvents = function(){
+	logger.log({
+		level: logger.levels.WARN,
+		ns: 'Store',
+		message: 'listEvents - requires implementation'
+	});
+	return q.resolve([]);
+};
+
+/**
+	{
+		from: "2014-08-12T00:00:00.000Z",
+		until: "2014-08-12T22:43:54.402Z",
+		period: "hour",
+		tzOffset: "America/Los_Angeles",
+		gmtOffset: -7,
+		data: [
+			{
+				dateString: "2014-08-12T00:00:00.000Z",
+				timestamp: 1407801600000,
+				events: {
+					test-event: 0
+				}
+			}
+		]
+	}
+*/
+Store.prototype.getTrends = function(events, from, until, tzOffset, period){
+	logger.log({
+		level: logger.levels.WARN,
+		ns: 'Store',
+		message: 'getTrends - requires implementation'
+	});
+	return q.resolve({
+		from: from,
+		until: until,
+		tzOffset: tzOffset,
+		period: period,
+		data: []
+	});
+};
+
+Store.prototype.calculateEvent = function(event, from, until, tzOffset, period){
+	logger.log({
+		level: logger.levels.WARN,
+		ns: 'Store',
+		message: 'calculateEvent - requires implementation'
+	});
+	return q.resolve({
+		from: from,
+		until: until,
+		tzOffset: tzOffset,
+		period: period,
+		data: []
+	});
 };
 
 

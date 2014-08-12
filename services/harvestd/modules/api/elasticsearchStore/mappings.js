@@ -15,6 +15,7 @@ module.exports = {
 				"enabled": true,
 				"store": true
 			},
+			"dynamic_date_formats": [ "yyyy-MM-dd", "dd-MM-yyyy", "date_optional_time" ],
 			"properties": {
 				"event": {
 					"index": "not_analyzed",

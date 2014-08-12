@@ -10,7 +10,10 @@ var base = {
 
 var envs = {
 	base: _.cloneDeep(base),
-	development: _.extend(_.cloneDeep(base), {}),
+	development: _.extend(_.cloneDeep(base), {
+		host: '',
+		port: 80
+	}),
 	production: _.extend(_.cloneDeep(base), {
 	    host: '',
 		port: 80,
@@ -19,7 +22,7 @@ var envs = {
 };
 
 var envMap = {
-	'HARVESTD_ELASTICSEARCH_HOST': 'HOST',
+	'HARVESTD_ELASTICSEARCH_HOST': 'host',
 	'HARVESTD_ELASTICSEARCH_PORT': 'port',
 	'HARVESTD_ELASTICSEARCH_API_VERSION': 'apiVersion',
 	'HARVESTD_ELASTICSEARCH_INDEX': 'index',

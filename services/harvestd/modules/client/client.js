@@ -247,9 +247,6 @@
 		preTrack(event, compiledData, function(event, data){
 			var cookie = getCookie();
 			data.$uuid = cookie.$uuid;
-			if(cookie.$userId){
-				data.$userId = cookie.$userId;
-			}
 
 			data = {
 				event: event,

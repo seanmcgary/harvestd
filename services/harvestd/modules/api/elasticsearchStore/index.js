@@ -107,6 +107,13 @@ ESStore.prototype.track = function(token, event, data){
 	});
 };
 
+/*
+	Only entries that have the same UUID and userId should be updated.
+
+	If they dont have the same UUID and userId, that means it has been otherwise
+	identified by someone already. We only want to update documents that have NOT
+	been identified
+*/
 var findMatchingDocuments = function(token, uuid){
 	var self = this;
 
@@ -122,7 +129,8 @@ var findMatchingDocuments = function(token, uuid){
 						filter: {
 							and: [
 								{ query: { match: { token: token } } },
-								{ query: { match: { $uuid: uuid } } }
+								{ query: { match: { $uuid: uuid } } },
+								{ query: { match: { $userId: uuid } } }
 							]
 						}
 					}

@@ -23,7 +23,7 @@
 
 	var config = {
 		batchSize: 5,
-		debug: true
+		debug: false
 	};
 
 	if(window._harvestConfig){
@@ -264,6 +264,7 @@
 
 	Harvest.prototype.identify = function(replaceId){
 		var self = this;
+		replaceId = [replaceId].join('');
 
 		if(!replaceId || !replaceId.length){
 			log('please provide a userId', true);

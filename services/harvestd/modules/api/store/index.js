@@ -26,15 +26,20 @@ Store.prototype.profile = function(token, id, data){
 Store.prototype.formatAttribute = function(attribute){
 	if(_.isString(attribute) && attribute.length){
 		var attr = attribute.toLowerCase();
+
 		if(_.indexOf(['true', 'false'], attr) >= 0){
 			return attr == 'true' ? true : false;
 		}
 
-		var matches = attr.match(/[0-9]+/ig);
+		var matches = attr.match(/^[0-9]+/ig);
 		
 		// is a number
 		if(matches && matches.length == 1){
-			return parseInt(attr);
+			var num = parseInt(attr);
+
+			if(!_.isNan(num) && _.isNumber(num)){
+				return num;
+			}
 		}
 
 		// guess its just a normal string

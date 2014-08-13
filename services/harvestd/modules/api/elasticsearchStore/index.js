@@ -84,6 +84,10 @@ ESStore.prototype.track = function(token, event, data){
 
 
 	return self.ready.then(function(){
+		console.log(event);
+		console.log(token);
+		console.log(data);
+
 		return self.es.create({
 			index: self.config.index,
 			type: self.config.type,

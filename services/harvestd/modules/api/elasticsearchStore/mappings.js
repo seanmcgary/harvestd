@@ -188,7 +188,7 @@ module.exports = {
 								}
 							}
 						},
-						"location": {
+						"geoLocation": {
 							"type": "object",
 							"properties": {
 								"city": {

@@ -57,10 +57,7 @@
 			push: function(action){
 				var self = this;
 				queue.push(action);
-				clearTimeout(timeout);
-				timeout = setTimeout(function(){
-					self.process();
-				}, 100);
+				self.process();
 			},
 			pop: function(num){
 				num = num || 1;
@@ -77,10 +74,16 @@
 			},
 			process: function(){
 				var self = this;
-				var actions = self.pop(config.batchSize);
-				if(actions && actions.length){
-					sendBatch(actions);
-				}
+
+				clearTimeout(timeout);
+				timeout = setTimeout(function(){
+					var actions = self.pop(config.batchSize);
+					if(actions && actions.length){
+						sendBatch(actions);
+
+						self.process();
+					}
+				}, 100);
 			}
 		};
 

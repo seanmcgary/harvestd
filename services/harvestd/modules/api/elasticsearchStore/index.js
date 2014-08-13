@@ -84,16 +84,6 @@ ESStore.prototype.track = function(token, event, data){
 
 
 	return self.ready.then(function(){
-		logger.log({
-			level: logger.levels.INFO,
-			ns: 'ESStore',
-			message: 'track',
-			data: {
-				event: event,
-				token: token,
-				data: data
-			}
-		});
 		return self.es.create({
 			index: self.config.index,
 			type: self.config.type,
@@ -103,7 +93,32 @@ ESStore.prototype.track = function(token, event, data){
 				event: event,
 				data: data
 			}
-		});
+		})
+		.then(function(result){
+			logger.log({
+				level: logger.levels.INFO,
+				ns: 'ESStore',
+				message: 'track',
+				data: {
+					event: event,
+					token: token,
+					data: data,
+					result: result
+				}
+			});
+		}, function(err){
+			logger.log({
+				level: logger.levels.ERROR,
+				ns: 'ESStore',
+				message: 'track failed',
+				data: {
+					event: event,
+					token: token,
+					data: data,
+					error: err
+				}
+			});
+		})
 	});
 };
 

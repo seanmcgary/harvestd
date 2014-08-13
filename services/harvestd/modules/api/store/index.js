@@ -37,7 +37,7 @@ Store.prototype.formatAttribute = function(attribute){
 		if(matches && matches.length == 1){
 			var num = parseInt(attr);
 
-			if(!_.isNan(num) && _.isNumber(num)){
+			if(!_.isNaN(num) && _.isNumber(num)){
 				return num;
 			}
 		}

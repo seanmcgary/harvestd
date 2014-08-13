@@ -34,8 +34,9 @@ module.exports = function(server, config, Store){
 		var event = req.query.event;
 		var field = req.query.field;
 		var segmentBy = req.query.segmentBy;
+		var overTime = req.query.overTime;
 
-		Store.segmentEvent(event, from, until, tzOffset, period, field, segmentBy)
+		Store.segmentEvent(event, from, until, tzOffset, period, field, segmentBy, overTime)
 		.then(function(data){
 			res.json(data);
 		}, res.handleError);

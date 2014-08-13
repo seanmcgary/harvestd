@@ -407,12 +407,14 @@ ESStore.prototype.getTrends = function(events, from, until, tzOffset, period){
 	});
 };
 
-ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, field, segmentBy){
+ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, field, segmentBy, overTime){
 	var self = this;
 	
 	if(segmentBy.length && !segmentBy.match(/^data\./)){
 		segmentBy = ['data.', segmentBy].join('');
 	}
+
+	overTime = (overTime || '').toLowerCase() == 'true' ? true : false;
 
 	return validateArguments(event, from, until, tzOffset, period)
 	.spread(function(event, from, until, tzOffset, period, gmtOffset){
@@ -439,6 +441,27 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 				aggs: calculate
 			};
 		}
+
+		var aggregation;
+		if(overTime){
+			aggregation = {
+				overTime: {
+					date_histogram: {
+						field: '$tsDate',
+						min_doc_count: 0,
+						interval: period,
+						time_zone: gmtOffset,
+						extended_bounds: {
+							min: from.getTime(),
+							max: until.getTime()
+						}
+					},
+					aggs: primaryAgg
+				}
+			};
+		} else {
+			aggregation = primaryAgg;
+		}
 		
 
 		var query = {
@@ -455,7 +478,7 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 					}
 				}
 			},
-			aggs: primaryAgg
+			aggs: aggregation
 		};
 		
 		return self.ready.then(function(){
@@ -467,32 +490,64 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 			.then(function(results){
 				results = parseAggregations(results);
 
-				var returnData = {
-					all: {
-						segmentBy: 'none',
-						values: {
-							fieldValue: '',
-							numberOfFields: results.calculate.count,
-							values: results.calculate
+				var parseData = function(results){
+					var returnData = {
+						all: {
+							segmentBy: 'none',
+							values: {
+								fieldValue: '',
+								numberOfFields: results.calculate.count,
+								values: _.mapValues(results.calculate, function(val){
+									return val || 0;
+								})
+							}
+						}
+					};
+
+					if(results.segmented && results.segmented.buckets && results.segmented.buckets.length){
+						returnData.segmented = {
+							segmentBy: segmentBy,
+							values: _.map(results.segmented.buckets, function(b){
+								var bukkit = {
+									fieldValue: b.key,
+									numberOfFields: b.doc_count,
+									values: b.calculate
+								};
+								return bukkit;
+							})
+						};
+					} else if(segmentBy){
+						returnData.segmented = {
+							segmentBy: segmentBy,
+							values: []
 						}
 					}
+					return returnData;
 				};
+				
+				if(overTime){
+					if(results.overTime && results.overTime.buckets && results.overTime.buckets.length){
+						results = results.overTime.buckets;
 
-				if(results.segmented && results.segmented.buckets && results.segmented.buckets.length){
-					returnData.segmented = {
-						segmentBy: segmentBy,
-						values: _.map(results.segmented.buckets, function(b){
-							var bukkit = {
-								fieldValue: b.key,
-								numberOfFields: b.doc_count,
-								values: b.calculate
+						results = _.map(results, function(res){
+							var parsed = parseData(res);
+
+							return {
+								dateString: res.key_as_string,
+								timestamp: res.key,
+								data: parsed
 							};
-							return bukkit;
-						})
-					};
+						});
+
+						return results;
+					} else {
+						return [];
+					}
+				} else {
+					return parseData(results);
 				}
 				
-				return returnData;
+				return results;
 			})
 			.then(function(results){
 				return {
@@ -507,8 +562,6 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 				}
 			});
 		});
-
-
 
 	});
 };

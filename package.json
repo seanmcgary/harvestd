@@ -1,6 +1,6 @@
 {
   "name": "harvestd",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "User stats collector daemon",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

@@ -41,4 +41,11 @@ module.exports = function(server, config, Store){
 			res.json(data);
 		}, res.handleError);
 	});
+
+	server.post('/analytics/segmentation', function(req, res, next){
+		Store.segmentation(req.body)
+		.then(function(data){
+			res.json(data);
+		}, res.handleError);
+	});
 };

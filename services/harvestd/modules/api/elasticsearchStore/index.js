@@ -6,6 +6,7 @@ var logwrangler = require('logwrangler');
 var logger = logwrangler.create();
 var config = require('../../../config');
 var moment = require('moment-timezone');
+var util = require('util');
 
 var errorTypes = config.requireLib('/modules/errorTypes').types;
 var ApiError = config.requireLib('/modules/errorTypes').ApiError;
@@ -270,11 +271,7 @@ var validateArguments = function(events, from, until, tzOffset, period){
 	console.log(events);
 	if(events && _.isString(events) && events.length){
 		events = events.replace(', ', ',').split(',');
-	} /*else {
-		return q.reject(new ApiError(errorTypes.MISSING_FIELDS, {
-			events: 'please provide one or more event names'
-		}));
-	}*/
+	}
 
 	var now = new Date();
 
@@ -593,6 +590,245 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 			});
 		});
 
+	});
+};
+
+var createAndStatement = function(andParams){
+	var ands = [];
+
+	_.each(andParams, function(param){
+		if(param.operation == 'equals'){
+			var term = {};
+			term[param.property] = param.value;
+			ands.push({
+				query: {
+					match: term
+				}
+			});
+		}
+	});
+	return ands;
+};
+
+var createOrStatement = function(orParams){
+	var ors = [];
+
+	_.each(orParams, function(param){
+		if(param.operation == 'equals'){
+			var term = {};
+			term[param.property] = param.value;
+			ors.push({
+				query: {
+					match: term
+				}
+			});
+		}
+	});
+	return ors;
+};
+
+var buildFilterQuery = function(data){
+	var query = {};
+
+	if(data.and && _.isArray(data.and) && data.and.length){
+		query.and = createAndStatement(data.and);
+	}
+
+	if(data.or && _.isArray(data.or) && data.or.length){
+		query.or = createOrStatement(data.or);
+	}
+
+	return query;
+};
+
+var buildSegmentation = function(dimensions){
+	var segmentation = {};
+
+	var segments = [];
+
+	_.each(dimensions, function(dim, index){
+		var seg = {
+			terms: {
+				field: dim.property
+			}
+		};
+		segments.push(seg);
+	});
+
+	var insert = function(seg, tree){
+		if(tree.aggs){
+			insert(seg, tree.aggs.dimension);
+		} else {
+			tree.aggs = {
+				dimension: seg
+			};
+		}
+	};
+
+	_.each(segments, function(seg, index){
+		if(index == 0){
+			segmentation.aggs = {
+				dimension: seg
+			};
+		} else {
+			insert(seg, segmentation.aggs.dimension);
+		}
+	});
+
+	return segmentation;
+};
+
+
+/*
+	{
+		event: 'some event name',
+		where: {
+			and: [
+				{
+					property: "something",
+					operation: 'equals',
+					value: 'blah'
+				}
+			],
+			or: []
+		},
+		dimensions: [
+			{
+				property: "something"
+			}
+		]
+	}
+
+*/
+ESStore.prototype.segmentation = function(data){
+	console.log(data);
+	var self = this;
+
+	var filter = null;
+
+	if(!data.where){
+		data.where = {};
+	}
+
+	if(!data.where.and){
+		data.where.and = [];
+	}
+
+	data.where.and.unshift({
+		property: 'event',
+		operation: 'equals',
+		value: data.event
+	});
+
+	if(data.where && _.keys(data.where).length){
+		filter = buildFilterQuery(data.where);
+	}
+	console.log(util.inspect(filter, true, 10, true));
+
+	var segmentation = null;
+	if(data.dimensions && _.isArray(data.dimensions) && data.dimensions.length){
+		segmentation = buildSegmentation(data.dimensions);
+	}
+
+	var fullQuery = {
+		query: {
+			filtered: {
+				filter: filter
+			}
+		}
+	};
+
+	if(segmentation){
+		fullQuery.aggs = segmentation.aggs;
+	}
+
+	console.log(JSON.stringify(fullQuery, null, '\t'));
+
+	return self.ready.then(function(){
+		return self.es.search({
+			index: self.config.index,
+			type: self.config.type,
+			body: fullQuery
+		})
+		.then(function(results){
+			results = parseAggregations(results);
+			//return results;
+/*
+
+{
+    "dimension": {
+        "buckets": [
+            {
+                "key": 1407890793855,
+                "key_as_string": "2014-08-13T00:46:33.855Z",
+                "doc_count": 1,
+                "dimension": {
+                    "buckets": [
+                        {
+                            "key": 1,
+                            "key_as_string": "1",
+                            "doc_count": 1
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}
+
+{
+	"dimensions": {
+		"some-property": [
+			{
+				value: 'blah',
+				count: 1234,
+				dimensions: {
+					"another property":[
+						{
+							value: 'blah',
+							count: 1234,
+							data: {}
+						}
+					]
+				}
+			}
+		]
+	}
+}
+*/
+
+			var parsedResults = {};
+
+			var parseBucketData = function(data){
+
+			}
+
+			var parseTree = function(buckets, index){
+				var bukkits = [];
+				_.each(buckets, function(buk, i){
+					var data = {
+						value: buk.key,
+						count: buk.doc_count
+					};
+
+					
+					if(buk.dimension && buk.dimension.buckets){
+						data.dimensions = parseTree(buk.dimension.buckets, index + 1);
+					}
+					
+					bukkits.push(data);
+				});
+				var b = {};
+				b[data.dimensions[index].property] = bukkits;
+				return b;
+			};
+
+			results = parseTree(results.dimension.buckets, 0, parsedResults);
+
+			return {
+				dimensions: results
+			}
+		});
 	});
 };
 

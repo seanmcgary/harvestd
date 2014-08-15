@@ -723,7 +723,6 @@ ESStore.prototype.segmentation = function(data){
 	if(data.where && _.keys(data.where).length){
 		filter = buildFilterQuery(data.where);
 	}
-	console.log(util.inspect(filter, true, 10, true));
 
 	var segmentation = null;
 	if(data.dimensions && _.isArray(data.dimensions) && data.dimensions.length){
@@ -742,8 +741,6 @@ ESStore.prototype.segmentation = function(data){
 		fullQuery.aggs = segmentation.aggs;
 	}
 
-	console.log(JSON.stringify(fullQuery, null, '\t'));
-
 	return self.ready.then(function(){
 		return self.es.search({
 			index: self.config.index,
@@ -753,55 +750,6 @@ ESStore.prototype.segmentation = function(data){
 		.then(function(results){
 			results = parseAggregations(results);
 			//return results;
-/*
-
-{
-    "dimension": {
-        "buckets": [
-            {
-                "key": 1407890793855,
-                "key_as_string": "2014-08-13T00:46:33.855Z",
-                "doc_count": 1,
-                "dimension": {
-                    "buckets": [
-                        {
-                            "key": 1,
-                            "key_as_string": "1",
-                            "doc_count": 1
-                        }
-                    ]
-                }
-            }
-        ]
-    }
-}
-
-{
-	"dimensions": {
-		"some-property": [
-			{
-				value: 'blah',
-				count: 1234,
-				dimensions: {
-					"another property":[
-						{
-							value: 'blah',
-							count: 1234,
-							data: {}
-						}
-					]
-				}
-			}
-		]
-	}
-}
-*/
-
-			var parsedResults = {};
-
-			var parseBucketData = function(data){
-
-			}
 
 			var parseTree = function(buckets, index){
 				var bukkits = [];
@@ -811,7 +759,6 @@ ESStore.prototype.segmentation = function(data){
 						count: buk.doc_count
 					};
 
-					
 					if(buk.dimension && buk.dimension.buckets){
 						data.dimensions = parseTree(buk.dimension.buckets, index + 1);
 					}
@@ -823,7 +770,7 @@ ESStore.prototype.segmentation = function(data){
 				return b;
 			};
 
-			results = parseTree(results.dimension.buckets, 0, parsedResults);
+			results = parseTree(results.dimension.buckets, 0);
 
 			return {
 				dimensions: results

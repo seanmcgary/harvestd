@@ -267,14 +267,14 @@ var defaultPeriod = 'day';
 
 var validateArguments = function(events, from, until, tzOffset, period){
 	tzOffset = tzOffset || 'America/Los_Angeles';
-
+	console.log(events);
 	if(events && _.isString(events) && events.length){
 		events = events.replace(', ', ',').split(',');
-	} else {
+	} /*else {
 		return q.reject(new ApiError(errorTypes.MISSING_FIELDS, {
 			events: 'please provide one or more event names'
 		}));
-	}
+	}*/
 
 	var now = new Date();
 
@@ -308,102 +308,119 @@ var buildRange = function(from, until){
 
 ESStore.prototype.getTrends = function(events, from, until, tzOffset, period){
 	var self = this;
-
+	console.log("TRENDS");
 	return validateArguments(events, from, until, tzOffset, period)
 	.spread(function(events, from, until, tzOffset, period, gmtOffset){
-		
-		var range = buildRange(from, until);
 
-		var terms = _.map(events, function(evt){
-			return {
-				term: { event: evt }
-			}
-		});
+		var eventPromise;
+		if(events && events.length){
+			eventPromise = q.resolve(events);
+		} else {
+			eventPromise = self.listEvents()
+			.then(function(events){
+				events = _.sortBy(events, function(evt){ return evt; });
 
-		var query = {
-			query: {
-				filtered: {
-					filter: {
-						and: [
-							{
-								range: range
-							}, {
-								or: terms
-							}
-						]
-					}
-				}
-			},
-			aggs: {
-				trends: {
-					date_histogram: {
-						field: '$tsDate',
-						min_doc_count: 0,
-						interval: period,
-						time_zone: gmtOffset,
-						extended_bounds: {
-							min: from.getTime(),
-							max: until.getTime()
-						}
-					},
-					aggs: {
-						events: {
-							terms: {
-								field: 'event'
-							}
-						}
-					}
-				}
-			}
-		};
+				return events.slice(0, 20);
+			});
+		}
 
-		//console.log(JSON.stringify(query, null, '\t'));
+		return eventPromise
+		.then(function(events){
 
-		
-		return self.ready.then(function(){
-			return self.es.search({
-				index: self.config.index,
-				type: self.config.type,
-				body: query
-			})
-			.then(function(results){
-				results = parseAggregations(results);
-				if(!results || !results.trends.buckets){
-					return q.reject(new ApiError(errorTypes.DB_ERROR, 'error parsing es results'));
-				}
+			var range = buildRange(from, until);
 
-				results = results.trends.buckets;
-
-				results = _.map(results, function(bucket){
-					var bukkit = {
-						dateString: bucket.key_as_string,
-						timestamp: bucket.key,
-						events: {}
-					};
-
-					var bucketEvents = bucket.events.buckets || [];
-
-					_.each(events, function(evt){
-						var bev = _.find(bucketEvents, function(b){ return b.key == evt; });
-						bukkit.events[evt] = bev ? bev.doc_count : 0;
-					});
-
-					return bukkit;
-				});
-				return results;
-			})
-			.then(function(results){
+			var terms = _.map(events, function(evt){
 				return {
-					from: from,
-					until: until,
-					period: period,
-					tzOffset: tzOffset,
-					gmtOffset: gmtOffset,
-					events: events,
-					data:results
+					term: { event: evt }
 				}
 			});
-		});
+
+			var query = {
+				query: {
+					filtered: {
+						filter: {
+							and: [
+								{
+									range: range
+								}, {
+									or: terms
+								}
+							]
+						}
+					}
+				},
+				aggs: {
+					trends: {
+						date_histogram: {
+							field: '$tsDate',
+							min_doc_count: 0,
+							interval: period,
+							time_zone: gmtOffset,
+							extended_bounds: {
+								min: from.getTime(),
+								max: until.getTime()
+							}
+						},
+						aggs: {
+							events: {
+								terms: {
+									field: 'event'
+								}
+							}
+						}
+					}
+				}
+			};
+
+			//console.log(JSON.stringify(query, null, '\t'));
+
+			
+			return self.ready.then(function(){
+				return self.es.search({
+					index: self.config.index,
+					type: self.config.type,
+					body: query
+				})
+				.then(function(results){
+
+					results = parseAggregations(results);
+					
+					if(!results || !results.trends.buckets){
+						return q.reject(new ApiError(errorTypes.DB_ERROR, 'error parsing es results'));
+					}
+					results = results.trends.buckets;
+
+
+					results = _.map(results, function(bucket){
+						var bukkit = {
+							dateString: bucket.key_as_string,
+							timestamp: bucket.key,
+							events: {}
+						};
+
+						var bucketEvents = bucket.events.buckets || [];
+						_.each(events, function(evt){
+							var bev = _.find(bucketEvents, function(b){ return b.key == evt; });
+							bukkit.events[evt] = bev ? bev.doc_count : 0;
+						});
+
+						return bukkit;
+					});
+					return results;
+				})
+				.then(function(results){
+					return {
+						from: from,
+						until: until,
+						period: period,
+						tzOffset: tzOffset,
+						gmtOffset: gmtOffset,
+						events: events,
+						data:results
+					}
+				});
+			});
+		});	
 	});
 };
 
@@ -462,6 +479,14 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 		} else {
 			aggregation = primaryAgg;
 		}
+
+		if(segmentBy){
+			aggregation.segments = {
+				terms: {
+					field: segmentBy
+				}
+			};
+		}
 		
 
 		var query = {
@@ -489,6 +514,7 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 			})
 			.then(function(results){
 				results = parseAggregations(results);
+				return results;
 
 				var parseData = function(results){
 					var returnData = {
@@ -524,6 +550,10 @@ ESStore.prototype.segmentEvent = function(event, from, until, tzOffset, period, 
 					}
 					return returnData;
 				};
+
+				if(segmentBy ){
+
+				}
 				
 				if(overTime){
 					if(results.overTime && results.overTime.buckets && results.overTime.buckets.length){

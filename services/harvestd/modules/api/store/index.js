@@ -31,10 +31,10 @@ Store.prototype.formatAttribute = function(attribute){
 			return attr == 'true' ? true : false;
 		}
 
-		var matches = attr.match(/^[0-9]+/ig);
+		var matches = attr.match(/[^0-9]+/ig);
 		
 		// is a number
-		if(matches && matches.length == 1){
+		if(!matches){
 			var num = parseInt(attr);
 
 			if(!_.isNaN(num) && _.isNumber(num)){

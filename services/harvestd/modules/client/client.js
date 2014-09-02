@@ -288,6 +288,18 @@
 		setCookie(cookie);
 	};
 
+	Harvest.prototype.setUserValues = function(values){
+		var cookie = getCookie();
+
+		var payload = {
+			token: this.token,
+			data: values,
+			'$uuid': cookie['$uuid']
+		};
+
+		requestQueue.push(['setUserValues', payload]);
+	};
+
 	Harvest.prototype.alwaysInclude = function(data){
 		if(data && typeof data === 'object'){
 			this._alwaysInclude = data;

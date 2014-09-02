@@ -84,9 +84,6 @@ ESStore.prototype.track = function(token, event, data){
 
 
 	return self.ready.then(function(){
-		console.log(event);
-		console.log(token);
-		console.log(data);
 
 		return self.es.create({
 			index: self.config.index,
@@ -213,10 +210,137 @@ ESStore.prototype.identify = function(token, uuid, userId){
 				updates.push({ update: { _index: self.config.index, _type: self.config.type, _id: id } });
 				updates.push({ doc: { data: { $userId: userId }}});
 			});
-			
 			return self.es.bulk({
 				body: updates
 			});
+		});
+	});
+};
+
+/*
+	User structure:
+
+	{
+		name: 'email',
+		value: 'test@mydomain.com',
+		$uuids: [
+			10C79F6B-AB15-4DF6-8EE6-87C5909A180D,
+			10C79F6B-AB15-4DF6-8EE6-87C5909A180D,
+			10C79F6B-AB15-4DF6-8EE6-87C5909A180D
+		]
+	}
+
+*/
+ESStore.prototype.getUser = function(uuid){
+	var self = this;
+	return self.ready.then(function(){
+		return self.es.search({
+			index: self.config.index,
+			type: self.config.usersType,
+			body: {
+				query: {
+					match: {
+						'$uuids': uuid
+					}
+				}
+			}
+		})
+		.then(function(results){
+			if(results && results.hits && results.hits.total){
+				return results.hits.hits;
+			} else {
+				return [];
+			}
+		});
+	});
+};
+
+ESStore.prototype.setUserValues = function(token, uuid, values){
+	var self = this;
+
+	values = self.transformKeys(values);
+
+	logger.log({
+		level: logger.levels.INFO,
+		ns: 'ESStore',
+		message: 'set user values',
+		data: {
+			token: token,
+			uuid: uuid,
+			values: values
+		}
+	});
+
+	return self.getUser(uuid)
+	.then(function(user){
+		var updates = [];
+		var newFields = [];
+
+		_.each(values, function(val, key){
+
+			var existing = _.find(user, function(u){ return u._source.field.key == key; });
+
+			if(existing){
+				var payload = existing._source;
+
+				if(val != payload.field.value){
+					payload.field.value = val;
+
+					updates.push({
+						id: existing._id,
+						doc: payload
+					});
+				}
+			} else {
+				newFields.push({
+					field: {
+						key: key,
+						value: val,
+					},
+					token: token,
+					$uuids: [uuid]
+				});
+			}
+		});
+
+		var operations = [];
+
+		_.map(newFields, function(field){
+			operations.push({ create: { _index: self.config.index, _type: self.config.usersType }});
+			operations.push(field);
+		});
+
+		_.map(updates, function(field){
+			operations.push({ update: { _index: self.config.index, _type: self.config.usersType, _id: field.id }});
+			operations.push({ doc: field.doc });
+		});
+
+		if(operations.length){
+			return self.es.bulk({
+				body: operations
+			})
+			.then(function(){
+				logger.info({
+					message: (operations.length / 2) + ' operations made',
+					data: {
+						updates: updates.length,
+						newFields: newFields.length
+					}
+				});
+			})
+		} else {
+			logger.info({
+				message: 'no operations to be made'
+			});
+			return q.resolve();
+		}
+	})
+	.then(undefined, function(err){
+		logger.error({
+			message: 'error setting user attributes',
+			data: {
+				error: err
+			}
 		});
 	});
 };

@@ -185,6 +185,11 @@ module.exports = {
 									"index": "not_analyzed",
 									"type": "string",
 									"store": true
+								},
+								"browserVersion": {
+									"index": "not_analyzed",
+									"type": "string",
+									"store": true
 								}
 							}
 						},
@@ -225,6 +230,30 @@ module.exports = {
 						}
 					}
 				}
+			}
+		}
+	}
+};
+
+var users = {
+	"users": {
+		"properties": {
+			"field": {
+				"type": "object",
+				"properties": {
+					"key": {
+						"type": "string",
+						"index": "not_analyzed"
+					},
+					"value": {
+						"type": "string",
+						"index": "not_analyzed"
+					}
+				}
+			},
+			"$uuids": {
+				"type": "string",
+				"index": "not_analyzed"
 			}
 		}
 	}

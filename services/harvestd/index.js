@@ -7,8 +7,6 @@ var q = require('q');
 var config = require('../config');
 var baseStore = require('./modules/api/store');
 var elasticsearchStore = require('./modules/api/elasticsearchStore');
-
-
 var logwrangler = require('logwrangler');
 
 // express related stuff
@@ -33,6 +31,12 @@ exports.create = function(options){
 	}
 
 	var server = options.server || express();
+
+	server.use(function(req, res, next){
+		res.set('x-harvestd-version', config.packageVersion);
+		next();
+	});
+
 	server.use(bodyParser.urlencoded({ extended: true }));
 	server.use(bodyParser.json());
 	server.use(bodyParser.json({ type: 'application/json' }));

@@ -152,6 +152,9 @@ module.exports = function(server, config, Store){
 						case 'identify':
 							promise = identifyUser(action[1]);
 							break;
+						case 'setUserValues':
+							var a = action[1];
+							promise = setUserValues(a.token, a.$uuid, a.data);
 						default:
 							promise = q.resolve();
 							break;
@@ -171,7 +174,38 @@ module.exports = function(server, config, Store){
 		async.series(queue, function(){
 
 		});
+	});
 
+	server.put('/users/:uuid', function(req, res){
+
+		setUserValues(req.body.token, req.params.uuid, req.body.data);
+		res.json(200, {});
+	});
+
+	var setUserValues = function(token, uuid, data){
+		Store.setUserValues(token, uuid, data)
+		.then(function(result){
+		
+		});
+	};
+
+	server.get('/users/:uuid', function(req, res){
+		return Store.getUser(req.params.uuid)
+		.then(function(userDoc){
+			if(!userDoc || !userDoc.length){
+				return res.handleError(new ApiError(errorTypes.NOT_FOUND, {
+					uuid: req.params.uuid
+				}));
+			}
+
+			var user = {};
+
+			_.each(userDoc, function(doc){
+				doc = doc._source;
+				user[doc.field.key] = doc;
+			});
+			res.json(user);
+		});
 	});
 
 };

@@ -185,7 +185,7 @@ module.exports = function(server, config, Store){
 	var setUserValues = function(token, uuid, data){
 		Store.setUserValues(token, uuid, data)
 		.then(function(result){
-			console.log(result);
+		
 		});
 	};
 

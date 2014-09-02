@@ -53,5 +53,15 @@ Store.prototype.formatAttribute = function(attribute){
 	return attribute;
 };
 
+Store.prototype.getUser = function(uuid){
+	console.log('Implement - users.getUser');
+	return q.resolve();
+};
+
+Store.prototype.setUserValues = function(token, uuid, values){
+	console.log('Implement - users.setUserValues');
+	return q.resolve();
+};
+
 
 module.exports = Store;

@@ -5,7 +5,8 @@ var base = {
 	port: 9200,
 	apiVersion: '1.1',
 	index: 'analytics',
-	type: 'event'
+	type: 'event',
+	usersType: 'users'
 };
 
 var envs = {
@@ -19,11 +20,12 @@ var envs = {
 };
 
 var envMap = {
-	'HARVESTD_ELASTICSEARCH_HOST': 'HOST',
+	'HARVESTD_ELASTICSEARCH_HOST': 'host',
 	'HARVESTD_ELASTICSEARCH_PORT': 'port',
 	'HARVESTD_ELASTICSEARCH_API_VERSION': 'apiVersion',
 	'HARVESTD_ELASTICSEARCH_INDEX': 'index',
-	'HARVESTD_ELASTICSEARCH_TYPE': 'type'
+	'HARVESTD_ELASTICSEARCH_TYPE': 'type',
+	'HARVESTD_ELASTICSEARCH_USERS_TYPE': 'usersType'
 };
 
 module.exports = function(env){

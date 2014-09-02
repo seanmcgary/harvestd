@@ -9,6 +9,10 @@
 				hvst.track('some-test-event', { yo: 'dawg' });
 				hvst.track('another-immediate-event', { yo: 'dawg' });
 				hvst.identify(123456);
+
+				setTimeout(function(){
+					hvst.setUserValues({ email: 'testuser@test.com' });
+				}, 3000);
 			}, false);
 		</script>
 	</head>

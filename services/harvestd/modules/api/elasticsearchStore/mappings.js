@@ -100,6 +100,11 @@ module.exports = {
 							"type": "string",
 							"store": true
 						},
+						"campaign": {
+							"index": "not_analyzed",
+							"type": "string",
+							"store": true
+						},
 						"campaigns": {
 							"index": "not_analyzed",
 							"type": "string",

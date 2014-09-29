@@ -1,6 +1,6 @@
 {
   "name": "harvestd",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "User stats collector daemon",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -22,11 +22,11 @@
     "q": "~1.0.1",
     "express": "~4.7.2",
     "cookie-parser": "~1.3.2",
-    "elasticsearch": "~2.4.0",
     "node-uuid": "~1.4.1",
     "express-wrangler": "~0.1.0",
     "body-parser": "~1.6.3",
     "async": "~0.9.0",
-    "logwrangler": "~0.1.5"
+    "logwrangler": "~0.1.5",
+    "elasticsearch": "~2.4.3"
   }
 }
